@@ -1,0 +1,47 @@
+### Criar plano Básico
+POST http://localhost:3000/api/plans
+Content-Type: application/json
+
+{
+  "name": "Básico",
+  "price": 29.90
+}
+
+### Criar plano Pro
+POST http://localhost:3000/api/plans
+Content-Type: application/json
+
+{
+  "name": "Pro",
+  "price": 59.90
+}
+
+### Criar plano Premium
+POST http://localhost:3000/api/plans
+Content-Type: application/json
+
+{
+  "name": "Premium",
+  "price": 99.90
+}
+
+### Listar todos
+GET http://localhost:3000/api/plans
+
+### Buscar pelo ID
+GET http://localhost:3000/api/plans/1
+
+### Atualizar
+PUT http://localhost:3000/api/plans/1
+Content-Type: application/json
+
+{
+  "name": "Básico Plus",
+  "price": 39.90
+}
+
+### Excluir
+DELETE http://localhost:3000/api/plans/2
+
+### Listar novamente
+GET http://localhost:3000/api/plans
