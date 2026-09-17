@@ -37,3 +37,51 @@ model Plan {
   name  String
   price Float
 }
+
+model Library {
+  id     Int              @id @default(autoincrement())
+  userId Int              @unique
+  games  gamesOnLibrary[]
+}
+
+model Game {
+  id              Int              @id @default(autoincrement())
+  name            String
+  libraries       gamesOnLibrary[]
+  categories      Category[]
+  gamesOnPurchase gamesPurchased[]
+}
+
+model gamesOnLibrary {
+  library    Library @relation(fields: [libraryId], references: [id])
+  libraryId  Int
+  game       Game    @relation(fields: [gameId], references: [id])
+  gameId     Int
+  timePlayed Int
+
+  @@id([libraryId, gameId]) // Chave primária composta
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  games Game[]
+}
+
+model Purchase {
+  id         Int              @id @default(autoincrement())
+  totalPrice Float
+  data       DateTime         @default(now())
+  purchases  gamesPurchased[]
+}
+
+model gamesPurchased {
+  purchase         Purchase @relation(fields: [purchaseId], references: [id])
+  purchaseId       Int
+  game             Game     @relation(fields: [gameId], references: [id])
+  gameId           Int
+  acquisitionPrice Float
+  discount         Float
+
+  @@id([purchaseId, gameId])
+}
