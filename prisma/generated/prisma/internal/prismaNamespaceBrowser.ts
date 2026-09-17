@@ -53,7 +53,13 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Profile: 'Profile',
-  Plan: 'Plan'
+  Plan: 'Plan',
+  Library: 'Library',
+  Game: 'Game',
+  gamesOnLibrary: 'gamesOnLibrary',
+  Category: 'Category',
+  Purchase: 'Purchase',
+  gamesPurchased: 'gamesPurchased'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -73,6 +79,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  password: 'password',
   createdAt: 'createdAt'
 } as const
 
@@ -99,6 +106,58 @@ export const PlanScalarFieldEnum = {
 } as const
 
 export type PlanScalarFieldEnum = (typeof PlanScalarFieldEnum)[keyof typeof PlanScalarFieldEnum]
+
+
+export const LibraryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId'
+} as const
+
+export type LibraryScalarFieldEnum = (typeof LibraryScalarFieldEnum)[keyof typeof LibraryScalarFieldEnum]
+
+
+export const GameScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type GameScalarFieldEnum = (typeof GameScalarFieldEnum)[keyof typeof GameScalarFieldEnum]
+
+
+export const GamesOnLibraryScalarFieldEnum = {
+  libraryId: 'libraryId',
+  gameId: 'gameId',
+  timePlayed: 'timePlayed'
+} as const
+
+export type GamesOnLibraryScalarFieldEnum = (typeof GamesOnLibraryScalarFieldEnum)[keyof typeof GamesOnLibraryScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const PurchaseScalarFieldEnum = {
+  id: 'id',
+  totalPrice: 'totalPrice',
+  data: 'data'
+} as const
+
+export type PurchaseScalarFieldEnum = (typeof PurchaseScalarFieldEnum)[keyof typeof PurchaseScalarFieldEnum]
+
+
+export const GamesPurchasedScalarFieldEnum = {
+  purchaseId: 'purchaseId',
+  gameId: 'gameId',
+  acquisitionPrice: 'acquisitionPrice',
+  discount: 'discount'
+} as const
+
+export type GamesPurchasedScalarFieldEnum = (typeof GamesPurchasedScalarFieldEnum)[keyof typeof GamesPurchasedScalarFieldEnum]
 
 
 export const SortOrder = {

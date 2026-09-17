@@ -54,3 +54,33 @@ export type Profile = Prisma.ProfileModel
  * 
  */
 export type Plan = Prisma.PlanModel
+/**
+ * Model Library
+ * 
+ */
+export type Library = Prisma.LibraryModel
+/**
+ * Model Game
+ * 
+ */
+export type Game = Prisma.GameModel
+/**
+ * Model gamesOnLibrary
+ * 
+ */
+export type gamesOnLibrary = Prisma.gamesOnLibraryModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model Purchase
+ * 
+ */
+export type Purchase = Prisma.PurchaseModel
+/**
+ * Model gamesPurchased
+ * 
+ */
+export type gamesPurchased = Prisma.gamesPurchasedModel
