@@ -79,8 +79,8 @@ export const UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
-  password: 'password',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  passwordHash: 'passwordHash'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -143,6 +143,7 @@ export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typ
 
 export const PurchaseScalarFieldEnum = {
   id: 'id',
+  userId: 'userId',
   totalPrice: 'totalPrice',
   data: 'data'
 } as const
