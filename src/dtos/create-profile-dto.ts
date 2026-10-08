@@ -1,10 +1,5 @@
-import { IsInt, IsPositive, IsString, Length, IsOptional, IsDateString,
-IsUrl, MaxLength } from 'class-validator';
+import { IsString, Length, IsOptional, IsDateString, MaxLength } from 'class-validator';
 export class CreateProfileDto {
-@IsInt()
-@IsPositive()
-userId: number = 0; // vínculo obrigatório
-
 @IsString()
 @Length(2, 120)
 fullName: string = "";

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
@@ -19,14 +19,17 @@ export class PlansService {
   }
 
   async findOne(id: number) {
-    return this.prisma.plan.findUnique({
+    const plan = await this.prisma.plan.findUnique({
       where: {
         id,
       },
     });
+    if (!plan) throw new NotFoundException('Plano não encontrado.');
+    return plan;
   }
 
   async update(id: number, name: string, price: number) {
+    await this.findOne(id);
     return this.prisma.plan.update({
       where: {
         id,
@@ -39,6 +42,7 @@ export class PlansService {
   }
 
   async remove(id: number) {
+    await this.findOne(id);
     return this.prisma.plan.delete({
       where: {
         id,

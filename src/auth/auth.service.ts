@@ -14,7 +14,7 @@ export class AuthService {
 
         const user = await this.validate(email, password);
         if (!user) throw new UnauthorizedException('Credenciais inválidas');
-        const payload = { sub: user.id, email: user.email, name: user.name };
+        const payload = { sub: user.id, email: user.email, name: user.name, role: user.role };
         
         return {
             access_token: await this.jwt.signAsync(payload),
@@ -38,7 +38,7 @@ export class AuthService {
 
     async register(dto: CreateUserDTO) {
         const user = await this.userService.createUser(dto);
-        const payload = { sub: user.id, email: user.email, name: user.name };
+        const payload = { sub: user.id, email: user.email, name: user.name, role: user.role };
         return {
             access_token: await this.jwt.signAsync(payload),
             user: payload,

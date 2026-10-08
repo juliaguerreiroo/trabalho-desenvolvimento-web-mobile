@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CreateCategoryDto } from 'src/dtos/create-category-dto';
 import { UpdateCategoryDto } from 'src/dtos/update-category-dto';
@@ -8,7 +8,7 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(dto: CreateCategoryDto) {
-    return this.prisma.category.create({
+    return this.ensureGamesExist(dto.gameIds).then(() => this.prisma.category.create({
       data: {
         name: dto.name,
         games: dto.gameIds?.length
@@ -16,7 +16,7 @@ export class CategoriesService {
           : undefined,
       },
       include: { games: true },
-    });
+    }));
   }
 
   findAll() {
@@ -37,6 +37,7 @@ export class CategoriesService {
 
   async update(id: number, dto: UpdateCategoryDto) {
     await this.findOne(id);
+    await this.ensureGamesExist(dto.gameIds);
     return this.prisma.category.update({
       where: { id },
       data: {
@@ -52,5 +53,13 @@ export class CategoriesService {
   async remove(id: number) {
     await this.findOne(id);
     return this.prisma.category.delete({ where: { id } });
+  }
+
+  private async ensureGamesExist(gameIds?: number[]) {
+    if (!gameIds?.length) return;
+    const count = await this.prisma.game.count({ where: { id: { in: gameIds } } });
+    if (count !== new Set(gameIds).size) {
+      throw new BadRequestException('Um ou mais jogos não foram encontrados.');
+    }
   }
 }

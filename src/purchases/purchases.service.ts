@@ -16,6 +16,16 @@ export class PurchasesService {
       throw new BadRequestException('Não é possível repetir jogos na mesma compra.');
     }
 
+    const calculatedTotal = dto.items.reduce((total, item) => {
+      if (item.discount > item.acquisitionPrice) {
+        throw new BadRequestException('O desconto não pode ser maior que o preço do jogo.');
+      }
+      return total + item.acquisitionPrice - item.discount;
+    }, 0);
+    if (Math.abs(calculatedTotal - dto.totalPrice) > 0.01) {
+      throw new BadRequestException('O total da compra não corresponde aos itens.');
+    }
+
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
     if (!user) throw new NotFoundException('Usuário não encontrado.');
 

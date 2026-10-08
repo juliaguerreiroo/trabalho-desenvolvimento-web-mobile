@@ -7,14 +7,19 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 import { PlansService } from './plan.service';
 
-@Controller('api/plans')
+@Controller('plans')
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
   @Post()
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   create(
     @Body('name') name: string,
     @Body('price') price: number,
@@ -33,6 +38,8 @@ export class PlansController {
   }
 
   @Put(':id')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body('name') name: string,
@@ -42,6 +49,8 @@ export class PlansController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.plansService.remove(id);
   }

@@ -7,37 +7,40 @@ import { CreateLibraryDto } from 'src/dtos/create-library-dto';
 export class LibrariesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateLibraryDto) {
-    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
+  async create(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuário não encontrado.');
 
-    const existing = await this.prisma.library.findUnique({ where: { userId: dto.userId } });
+    const existing = await this.prisma.library.findUnique({ where: { userId } });
     if (existing) throw new ConflictException('Usuário já possui uma biblioteca.');
 
     return this.prisma.library.create({
-      data: { userId: dto.userId },
+      data: { userId },
       include: { games: { include: { game: true } } },
     });
   }
 
-  findAll() {
+  findAll(userId: number) {
     return this.prisma.library.findMany({
+      where: { userId },
       include: { games: { include: { game: true } } },
       orderBy: { id: 'asc' },
     });
   }
 
-  async findOne(id: number) {
+  async findOne(userId: number, id: number) {
     const library = await this.prisma.library.findUnique({
       where: { id },
       include: { games: { include: { game: true } } },
     });
-    if (!library) throw new NotFoundException('Biblioteca não encontrada.');
+    if (!library || library.userId !== userId) {
+      throw new NotFoundException('Biblioteca não encontrada.');
+    }
     return library;
   }
 
-  async addGame(libraryId: number, gameId: number, dto: AddLibraryGameDto) {
-    await this.findOne(libraryId);
+  async addGame(userId: number, libraryId: number, gameId: number, dto: AddLibraryGameDto) {
+    await this.findOne(userId, libraryId);
     const game = await this.prisma.game.findUnique({ where: { id: gameId } });
     if (!game) throw new NotFoundException('Jogo não encontrado.');
 
@@ -46,11 +49,11 @@ export class LibrariesService {
       create: { libraryId, gameId, timePlayed: dto.timePlayed },
       update: { timePlayed: dto.timePlayed },
     });
-    return this.findOne(libraryId);
+    return this.findOne(userId, libraryId);
   }
 
-  async removeGame(libraryId: number, gameId: number) {
-    await this.findOne(libraryId);
+  async removeGame(userId: number, libraryId: number, gameId: number) {
+    await this.findOne(userId, libraryId);
     try {
       await this.prisma.gamesOnLibrary.delete({
         where: { libraryId_gameId: { libraryId, gameId } },
@@ -58,6 +61,6 @@ export class LibrariesService {
     } catch {
       throw new NotFoundException('Jogo não está na biblioteca.');
     }
-    return this.findOne(libraryId);
+    return this.findOne(userId, libraryId);
   }
 }

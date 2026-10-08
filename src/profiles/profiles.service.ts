@@ -8,14 +8,14 @@ export class ProfilesService {
 
     constructor(private prisma: PrismaService) { }
 
-    async create(dto: CreateProfileDto) {
-        const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
+    async create(userId: number, dto: CreateProfileDto) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!user) {
             throw new BadRequestException('Usuário não existe.');
         }
         const existing = await this.prisma.profile.findUnique({
             where: {
-                userId: dto.userId
+                userId
             }
         });
         if (existing) {
@@ -23,19 +23,21 @@ export class ProfilesService {
         }
         await this.prisma.profile.create({
             data: {
-                userId: dto.userId ?? 0,
+                userId,
                 fullName: dto.fullName ?? '',
-                birthDate: dto.birthDate ?? '',
+                birthDate: dto.birthDate,
                 avatarUrl: dto.avatarUrl ?? ''
             }
         });
     }
 
-    async update(id: number, dto: UpdateProfileDto) {
+    async update(userId: number, id: number, dto: UpdateProfileDto) {
         const profile = await this.prisma.profile.findUnique({
-            where: { id }
+            where: { id },
         });
-        if (!profile) throw new NotFoundException('Perfil não encontrado.');
+        if (!profile || profile.userId !== userId) {
+            throw new NotFoundException('Perfil não encontrado.');
+        }
         await this.prisma.profile.update({
             where: { id }, data: {
                 birthDate: dto.birthDate,
@@ -45,9 +47,9 @@ export class ProfilesService {
         });
     }
 
-    async findOne(id: number) {
+    async findOne(userId: number, id: number) {
         const p = await this.prisma.profile.findUnique({ where: { id } });
-        if (!p) throw new NotFoundException('Perfil não encontrado.');
+        if (!p || p.userId !== userId) throw new NotFoundException('Perfil não encontrado.');
         return {
             id: p.id,
             userId: p.userId,

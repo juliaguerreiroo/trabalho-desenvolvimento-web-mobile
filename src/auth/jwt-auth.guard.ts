@@ -12,9 +12,10 @@ export class JwtAuthGuard implements CanActivate {
         // libera preflight CORS
         const method = (req.method || '').toUpperCase();
         if (method === 'OPTIONS') return true;
-        const url = String(req.originalUrl || req.url || '');
-        //liberar somente estas duas rotas
-        if (url.includes('/auth/login') || url.includes('/auth/register')) return true;
+        const path = String(req.path || req.url || '').split('?')[0];
+        const isPublicAuthRoute =
+            (method === 'POST' && (path === '/api/auth/login' || path === '/api/auth/register'));
+        if (isPublicAuthRoute) return true;
         // exige Authorization: Bearer <token>
         const auth = String(req.headers?.authorization || '');
         if (!auth.startsWith('Bearer ')) {
