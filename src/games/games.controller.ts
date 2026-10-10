@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { CreateGameDto } from 'src/dtos/create-game-dto';
@@ -10,15 +10,25 @@ export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   @Post()
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
-  create(@Body() dto: CreateGameDto) {
-    return this.gamesService.create(dto);
+  create(@Req() request: { user: { sub: number } }, @Body() dto: CreateGameDto) {
+    return this.gamesService.create(request.user.sub, dto);
   }
 
   @Get()
   findAll() {
     return this.gamesService.findAll();
+  }
+
+  @Get('catalog/featured')
+  catalog() {
+    return this.gamesService.catalog();
+  }
+
+  @Post('discounts/refresh')
+  @Roles('ADMIN')
+  @UseGuards(RolesGuard)
+  refreshDiscounts() {
+    return this.gamesService.refreshDiscounts();
   }
 
   @Get(':id')
@@ -27,15 +37,11 @@ export class GamesController {
   }
 
   @Put(':id')
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateGameDto) {
-    return this.gamesService.update(id, dto);
+  update(@Req() request: { user: { sub: number } }, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateGameDto) {
+    return this.gamesService.update(request.user.sub, id, dto);
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.gamesService.remove(id);
   }

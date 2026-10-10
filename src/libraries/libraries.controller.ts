@@ -31,6 +31,15 @@ export class LibrariesController {
     return this.librariesService.addGame(request.user.sub, libraryId, gameId, dto);
   }
 
+  @Post(':libraryId/games/:gameId/download')
+  download(
+    @Req() request: { user: { sub: number } },
+    @Param('libraryId', ParseIntPipe) libraryId: number,
+    @Param('gameId', ParseIntPipe) gameId: number,
+  ) {
+    return this.librariesService.simulateDownload(request.user.sub, libraryId, gameId);
+  }
+
   @Delete(':libraryId/games/:gameId')
   removeGame(
     @Req() request: { user: { sub: number } },

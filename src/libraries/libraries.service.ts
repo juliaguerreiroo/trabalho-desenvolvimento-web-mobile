@@ -63,4 +63,27 @@ export class LibrariesService {
     }
     return this.findOne(userId, libraryId);
   }
+
+  async simulateDownload(userId: number, libraryId: number, gameId: number) {
+    await this.findOne(userId, libraryId);
+    const ownedGame = await this.prisma.gamesOnLibrary.findUnique({
+      where: { libraryId_gameId: { libraryId, gameId } },
+      include: { game: true },
+    });
+    if (!ownedGame) throw new NotFoundException('Jogo não está na biblioteca.');
+
+    const timePlayed = ownedGame.timePlayed + Math.floor(Math.random() * 121) + 15;
+    await this.prisma.gamesOnLibrary.update({
+      where: { libraryId_gameId: { libraryId, gameId } },
+      data: { timePlayed },
+    });
+    return {
+      gameId,
+      gameName: ownedGame.game.name,
+      status: 'completed',
+      progress: 100,
+      simulated: true,
+      timePlayed,
+    };
+  }
 }

@@ -15,7 +15,8 @@ export class JwtAuthGuard implements CanActivate {
         const path = String(req.path || req.url || '').split('?')[0];
         const isPublicAuthRoute =
             (method === 'POST' && (path === '/api/auth/login' || path === '/api/auth/register'));
-        if (isPublicAuthRoute) return true;
+        const isPublicCatalogRoute = method === 'GET' && /^\/api\/(games|categories|plans)(\/|$)/.test(path);
+        if (isPublicAuthRoute || isPublicCatalogRoute) return true;
         // exige Authorization: Bearer <token>
         const auth = String(req.headers?.authorization || '');
         if (!auth.startsWith('Bearer ')) {

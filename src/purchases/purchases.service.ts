@@ -16,41 +16,79 @@ export class PurchasesService {
       throw new BadRequestException('Não é possível repetir jogos na mesma compra.');
     }
 
-    const calculatedTotal = dto.items.reduce((total, item) => {
-      if (item.discount > item.acquisitionPrice) {
-        throw new BadRequestException('O desconto não pode ser maior que o preço do jogo.');
-      }
-      return total + item.acquisitionPrice - item.discount;
-    }, 0);
-    if (Math.abs(calculatedTotal - dto.totalPrice) > 0.01) {
-      throw new BadRequestException('O total da compra não corresponde aos itens.');
-    }
-
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
     if (!user) throw new NotFoundException('Usuário não encontrado.');
 
-    const games = await this.prisma.game.findMany({ where: { id: { in: gameIds } }, select: { id: true } });
+    const games = await this.prisma.game.findMany({ where: { id: { in: gameIds } } });
     if (games.length !== gameIds.length) {
       throw new NotFoundException('Um ou mais jogos não foram encontrados.');
     }
 
+    const activePlans = await this.prisma.planSubscription.findMany({
+      where: { userId, expiresAt: { gt: new Date() } },
+      include: { plan: { include: { games: true } } },
+    });
+
     return this.prisma.$transaction(async (transaction) => {
+      const purchaseItems = await Promise.all(
+        dto.items.map(async (item) => {
+          const game = games.find((entry) => entry.id === item.gameId)!;
+          const planDiscount = this.resolvePlanDiscount(activePlans, game.id);
+          const effectiveDiscount = Math.max(game.currentDiscount, planDiscount);
+
+          return {
+            gameId: game.id,
+            acquisitionPrice: game.price,
+            discount: Number((game.price - this.netPrice(game.price, effectiveDiscount)).toFixed(2)),
+          };
+        }),
+      );
+
       const purchase = await transaction.purchase.create({
         data: {
           userId,
-          totalPrice: dto.totalPrice,
+          totalPrice: purchaseItems.reduce((total, item) => total + this.netPrice(item.acquisitionPrice, this.discountPercent(item.acquisitionPrice, item.discount)), 0),
           purchases: {
-            create: dto.items.map((item) => ({
-              gameId: item.gameId,
-              acquisitionPrice: item.acquisitionPrice,
-              discount: item.discount,
-            })),
+            create: purchaseItems,
           },
         },
         include: { purchases: { include: { game: true } } },
       });
+
+      for (const game of games) {
+        const library = await transaction.library.upsert({
+          where: { userId },
+          create: { userId },
+          update: {},
+        });
+        await transaction.gamesOnLibrary.upsert({
+          where: { libraryId_gameId: { libraryId: library.id, gameId: game.id } },
+          create: { libraryId: library.id, gameId: game.id, timePlayed: 0 },
+          update: {},
+        });
+      }
       return purchase;
     });
+  }
+
+  private resolvePlanDiscount(activePlans: Array<{ plan: { minDiscount: number; maxDiscount: number; games: Array<{ gameId: number }> } }>, gameId: number) {
+    const current = activePlans.find((subscription) =>
+      subscription.plan.games.some((entry) => entry.gameId === gameId),
+    );
+    if (!current) return 0;
+    const min = current.plan.minDiscount;
+    const max = current.plan.maxDiscount;
+    const chance = min + Math.random() * (max - min);
+    return Number(Math.min(max, chance).toFixed(2));
+  }
+
+  private netPrice(price: number, discountPercent: number) {
+    return Number((price * (1 - discountPercent / 100)).toFixed(2));
+  }
+
+  private discountPercent(price: number, discountAmount: number) {
+    if (price <= 0) return 0;
+    return Number(((discountAmount / price) * 100).toFixed(2));
   }
 
   findAll(userId: number) {
